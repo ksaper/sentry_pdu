@@ -58,3 +58,13 @@ docs/_build/
 # PyBuilder
 target/
 cloudshell_config.yml
+
+.idea/misc.xml
+
+.idea/modules.xml
+
+.idea/sentry_pdu.iml
+
+.idea/vcs.xml
+
+.idea/workspace.xml

@@ -1,7 +1,13 @@
-from cloudshell.shell.core.resource_driver_interface import ResourceDriverInterface
-from cloudshell.shell.core.driver_context import InitCommandContext, ResourceCommandContext, AutoLoadResource, \
-    AutoLoadAttribute, AutoLoadDetails, CancellationContext
+# from cloudshell.shell.core.resource_driver_interface import ResourceDriverInterface
+# from cloudshell.shell.core.driver_context import InitCommandContext, ResourceCommandContext, AutoLoadResource, \
+#     AutoLoadAttribute, AutoLoadDetails, CancellationContext
 #from data_model import *  # run 'shellfoundry generate' to generate data model classes
+
+from sentry.pm_pdu_handler import PmPduHandler
+from cloudshell.power.pdu.power_resource_driver_interface import PowerResourceDriverInterface
+from cloudshell.shell.core.resource_driver_interface import ResourceDriverInterface
+from cloudshell.shell.core.context import AutoLoadDetails, InitCommandContext, ResourceCommandContext
+from log_helper import LogHelper
 
 
 class SentryPduDriver (ResourceDriverInterface):
@@ -27,123 +33,29 @@ class SentryPduDriver (ResourceDriverInterface):
         """
         pass
 
-    # <editor-fold desc="Discovery">
-
     def get_inventory(self, context):
-        """
-        Discovers the resource structure and attributes.
-        :param AutoLoadCommandContext context: the context the command runs on
-        :return Attribute and sub-resource information for the Shell resource you can return an AutoLoadDetails object
-        :rtype: AutoLoadDetails
-        """
-        # See below some example code demonstrating how to return the resource structure and attributes
-        # In real life, this code will be preceded by SNMP/other calls to the resource details and will not be static
-        # run 'shellfoundry generate' in order to create classes that represent your data model
-        '''
-        resource = SentryPdu.create_from_context(context)
-        resource.vendor = 'specify the shell vendor'
-        resource.model = 'specify the shell model'
+        handler = PmPduHandler(context)
 
-        p1 = PowerSocket('p1')
-        resource.add_sub_resource('1', p1)
-        return resource.create_autoload_details()
-        '''
-        return AutoLoadDetails([], [])
-    # </editor-fold>
+        return handler.get_inventory()
 
-    # <editor-fold desc="Orchestration Save and Restore Standard">
-    def orchestration_save(self, context, cancellation_context, mode, custom_params):
-        """
-        Saves the Shell state and returns a description of the saved artifacts and information
-        This command is intended for API use only by sandbox orchestration scripts to implement
-        a save and restore workflow
-        :param ResourceCommandContext context: the context object containing resource and reservation info
-        :param CancellationContext cancellation_context: Object to signal a request for cancellation. Must be enabled in drivermetadata.xml as well
-        :param str mode: Snapshot save mode, can be one of two values 'shallow' (default) or 'deep'
-        :param str custom_params: Set of custom parameters for the save operation
-        :return: SavedResults serialized as JSON
-        :rtype: OrchestrationSaveResult
-        """
+    def PowerCycle(self, context, ports, delay):
+        try:
+            float(delay)
+        except ValueError:
+            raise Exception('Delay must be a numeric value')
 
-        # See below an example implementation, here we use jsonpickle for serialization,
-        # to use this sample, you'll need to add jsonpickle to your requirements.txt file
-        # The JSON schema is defined at:
-        # https://github.com/QualiSystems/sandbox_orchestration_standard/blob/master/save%20%26%20restore/saved_artifact_info.schema.json
-        # You can find more information and examples examples in the spec document at
-        # https://github.com/QualiSystems/sandbox_orchestration_standard/blob/master/save%20%26%20restore/save%20%26%20restore%20standard.md
-        '''
-        # By convention, all dates should be UTC
-        created_date = datetime.datetime.utcnow()
+        handler = PmPduHandler(context)
+        return handler.power_cycle(ports, float(delay))
 
-        # This can be any unique identifier which can later be used to retrieve the artifact
-        # such as filepath etc.
+    def PowerOff(self, context, ports):
+        handler = PmPduHandler(context)
 
-        # By convention, all dates should be UTC
-        created_date = datetime.datetime.utcnow()
+        return handler.power_off(ports)
 
-        # This can be any unique identifier which can later be used to retrieve the artifact
-        # such as filepath etc.
-        identifier = created_date.strftime('%y_%m_%d %H_%M_%S_%f')
+    def PowerOn(self, context, ports):
+        handler = PmPduHandler(context)
 
-        orchestration_saved_artifact = OrchestrationSavedArtifact('REPLACE_WITH_ARTIFACT_TYPE', identifier)
+        return handler.power_on(ports)
 
-        saved_artifacts_info = OrchestrationSavedArtifactInfo(
-            resource_name="some_resource",
-            created_date=created_date,
-            restore_rules=OrchestrationRestoreRules(requires_same_resource=True),
-            saved_artifact=orchestration_saved_artifact)
 
-        return OrchestrationSaveResult(saved_artifacts_info)
-        '''
-        pass
 
-    def orchestration_restore(self, context, cancellation_context, saved_artifact_info, custom_params):
-        """
-        Restores a saved artifact previously saved by this Shell driver using the orchestration_save function
-        :param ResourceCommandContext context: The context object for the command with resource and reservation info
-        :param CancellationContext cancellation_context: Object to signal a request for cancellation. Must be enabled in drivermetadata.xml as well
-        :param str saved_artifact_info: A JSON string representing the state to restore including saved artifacts and info
-        :param str custom_params: Set of custom parameters for the restore operation
-        :return: None
-        """
-        '''
-        # The saved_details JSON will be defined according to the JSON Schema and is the same object returned via the
-        # orchestration save function.
-        # Example input:
-        # {
-        #     "saved_artifact": {
-        #      "artifact_type": "REPLACE_WITH_ARTIFACT_TYPE",
-        #      "identifier": "16_08_09 11_21_35_657000"
-        #     },
-        #     "resource_name": "some_resource",
-        #     "restore_rules": {
-        #      "requires_same_resource": true
-        #     },
-        #     "created_date": "2016-08-09T11:21:35.657000"
-        #    }
-
-        # The example code below just parses and prints the saved artifact identifier
-        saved_details_object = json.loads(saved_details)
-        return saved_details_object[u'saved_artifact'][u'identifier']
-        '''
-        pass
-
-        def PowerOn(self, context, ports):
-            """
-            :type context: cloudshell.shell.core.driver_context.ResourceRemoteCommandContext
-            """
-            pass
-
-        def PowerOff(self, context, ports):
-            """
-            :type context: cloudshell.shell.core.driver_context.ResourceRemoteCommandContext
-            """
-            pass
-
-        def PowerCycle(self, context, ports, delay):
-            """
-            :type context: cloudshell.shell.core.driver_context.ResourceRemoteCommandContext
-            """
-            pass
-
-    # </editor-fold>
