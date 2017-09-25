@@ -2,7 +2,7 @@ import os
 
 from cloudshell.shell.core.context_utils import get_attribute_by_name
 from cloudshell.snmp.quali_snmp import QualiSnmp
-from cloudshell.snmp.snmp_parameters import SNMPV3Parameters, SNMPV2Parameters
+from cloudshell.snmp.snmp_parameters import SNMPV3Parameters, SNMPV2WriteParameters, SNMPV2ReadParameters
 from pysnmp.smi.rfc1902 import ObjectType
 from log_helper import LogHelper
 
@@ -48,8 +48,9 @@ class SnmpHandler:
             return SNMPV3Parameters(ip=self.address, snmp_user=self.user, snmp_password=self.password, snmp_private_key=self.private_key)
         else:
             if action.lower() == 'set':
-                community = self.community_write
+                # community = self.community_write
+                return SNMPV2WriteParameters(ip=self.address, snmp_write_community=self.community_write)
             else:
-                community = self.community_read
-
-            return SNMPV2Parameters(ip=self.address, snmp_community=community)
+                # community = self.community_read
+                return SNMPV2ReadParameters(ip=self.address, snmp_read_community=self.community_read)
+            # return SNMPV2Parameters(ip=self.address, snmp_community=community)
