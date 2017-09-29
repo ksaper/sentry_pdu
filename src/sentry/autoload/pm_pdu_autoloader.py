@@ -1,6 +1,7 @@
 from sentry.snmp_handler import SnmpHandler
 from cloudshell.shell.core.context import AutoLoadResource, AutoLoadDetails, AutoLoadAttribute
 from log_helper import LogHelper
+from data_model import *
 
 
 class PmPduAutoloader:
@@ -8,20 +9,21 @@ class PmPduAutoloader:
         self.context = context
         self.logger = LogHelper.get_logger(self.context)
         self.snmp_handler = SnmpHandler(self.context).get_raw_handler('get')
+        self.resource = SentryPdu.create_from_context(context)
 
     def autoload(self):
         rv = AutoLoadDetails()
         rv.resources = []
         rv.attributes = []
 
-        rv.attributes.append(self.makeattr('', 'Location', self.snmp_handler.get_property('SNMPv2-MIB', 'sysLocation', 0)))
+        rv.attributes.append(self.makeattr('', 'CS_PDU.Location', self.snmp_handler.get_property('SNMPv2-MIB', 'sysLocation', 0)))
         # rv.attributes.append(self.makeattr('', 'Location', self.snmp_handler.get_property('SNMPv2-MIB', 'systemLocation', 0)))
-        rv.attributes.append(self.makeattr('', 'Model', self.snmp_handler.get_property('Sentry3-MIB', 'towerModelNumber', 0)))
-        rv.attributes.append(self.makeattr('', 'Serial Number', self.snmp_handler.get_property('Sentry3-MIB', 'towerProductSN', 0)))
-        rv.attributes.append(self.makeattr('', 'Vendor', 'Sentry'))
-        rv.attributes.append(self.makeattr('', 'Version', self.snmp_handler.get_property('Sentry3-MIB', 'systemVersion', 0)))
+        rv.attributes.append(self.makeattr('', 'CS_PDU.Model', self.snmp_handler.get_property('Sentry3-MIB', 'towerModelNumber', 0)))
+        rv.attributes.append(self.makeattr('', 'SentryPdu.Serial Number', self.snmp_handler.get_property('Sentry3-MIB', 'towerProductSN', 0)))
+        rv.attributes.append(self.makeattr('', 'CS_PDU.Vendor', 'Sentry'))
+        rv.attributes.append(self.makeattr('', 'SentryPdu.System Version', self.snmp_handler.get_property('Sentry3-MIB', 'systemVersion', 0)))
 
-        pdu_name = self.snmp_handler.get_property('Sentry3-MIB', 'towerName', 0)
+        pdu_name = self.snmp_handler.get_property('SNMPv2-MIB', 'sysName', 0)
 
         outlet_table = self.snmp_handler.get_table('Sentry3-MIB', 'outletTable')
         for index, attribute in outlet_table.iteritems():
@@ -30,7 +32,7 @@ class PmPduAutoloader:
             unique_identifier = '%s.%s' % (pdu_name, index)
 
             rv.resources.append(self.makeres(name, 'Generic Power Socket', relative_address, unique_identifier))
-            rv.attributes.append(self.makeattr(relative_address, 'Port Description', attribute['outletname']))
+            rv.attributes.append(self.makeattr(relative_address, 'Port Description', attribute['outletName']))
 
         return rv
 

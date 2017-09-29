@@ -5,20 +5,27 @@ from cloudshell.snmp.quali_snmp import QualiSnmp
 from cloudshell.snmp.snmp_parameters import SNMPV3Parameters, SNMPV2WriteParameters, SNMPV2ReadParameters
 from pysnmp.smi.rfc1902 import ObjectType
 from log_helper import LogHelper
-
+from data_model import *
 
 class SnmpHandler:
     def __init__(self, context):
         self.context = context
+        self.resource = SentryPdu.create_from_context(context)
         self.logger = LogHelper.get_logger(context)
 
         self.address = self.context.resource.address
-        self.community_read = get_attribute_by_name(context=self.context, attribute_name='SNMP Read Community') or 'public'
-        self.community_write = get_attribute_by_name(context=self.context, attribute_name='SNMP Write Community') or 'private'
-        self.password = get_attribute_by_name(context=self.context, attribute_name='SNMP Password') or '',
-        self.user = get_attribute_by_name(context=self.context, attribute_name='SNMP User') or '',
-        self.version = get_attribute_by_name(context=self.context, attribute_name='SNMP Version')
-        self.private_key = get_attribute_by_name(context=self.context, attribute_name='SNMP Private Key')
+        self.community_read = get_attribute_by_name(context=self.context,
+                                                    attribute_name=self.resource.snmp_read_community) or 'public'
+        self.community_write = get_attribute_by_name(context=self.context,
+                                                     attribute_name=self.resource.snmp_write_community) or 'private'
+        self.password = get_attribute_by_name(context=self.context,
+                                              attribute_name=self.resource.snmp_v3_password) or '',
+        self.user = get_attribute_by_name(context=self.context,
+                                          attribute_name=self.resource.snmp_v3_user) or '',
+        self.version = get_attribute_by_name(context=self.context,
+                                             attribute_name=self.resource.snmp_version) or ''
+        self.private_key = get_attribute_by_name(context=self.context,
+                                                 attribute_name=self.resource.snmp_v3_private_key)
 
     def get(self, object_identity):
         handler = self._get_handler('get')
@@ -39,7 +46,7 @@ class SnmpHandler:
 
         handler = QualiSnmp(snmp_parameters, self.logger)
         handler.update_mib_sources(mib_path)
-        handler.load_mib(['PM-MIB'])
+        handler.load_mib(['Sentry3-MIB'])
 
         return handler
 

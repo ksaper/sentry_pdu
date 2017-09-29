@@ -16,13 +16,21 @@ node_types:
 
   vendor.switch.SentryPdu:
     derived_from: cloudshell.nodes.PDU
-    #properties:
+    properties:
     #  my_property:
     #    type: string          # optional values: string, integer, float, boolean, cloudshell.datatypes.Password
     #    default: fast
     #    description: Some attribute description
     #    constraints:
     #      - valid_values: [fast, slow]
+      Serial Number:
+        type: string
+        description: Factory Issued Serial Number of the device
+        tags: [setting, read_only]
+      System Version:
+        type: string
+        description: OS/Firmware version on the device
+        tags: [configuration, read_only]
     capabilities:
       auto_discovery_capability:
         type: cloudshell.capabilities.AutoDiscovery
