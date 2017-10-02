@@ -1,5 +1,5 @@
 from sentry.snmp_handler import SnmpHandler
-from cloudshell.shell.core.context import AutoLoadResource, AutoLoadDetails, AutoLoadAttribute
+from cloudshell.shell.core.driver_context import AutoLoadResource, AutoLoadDetails, AutoLoadAttribute
 from log_helper import LogHelper
 from data_model import *
 
@@ -12,9 +12,7 @@ class PmPduAutoloader:
         self.resource = SentryPdu.create_from_context(context)
 
     def autoload(self):
-        rv = AutoLoadDetails()
-        rv.resources = []
-        rv.attributes = []
+        rv = AutoLoadDetails(resources=[], attributes=[])
 
         rv.attributes.append(self.makeattr('', 'CS_PDU.Location', self.snmp_handler.get_property('SNMPv2-MIB', 'sysLocation', 0)))
         # rv.attributes.append(self.makeattr('', 'Location', self.snmp_handler.get_property('SNMPv2-MIB', 'systemLocation', 0)))
@@ -37,16 +35,11 @@ class PmPduAutoloader:
         return rv
 
     def makeattr(self, relative_address, attribute_name, attribute_value):
-        a = AutoLoadAttribute()
-        a.relative_address = relative_address
-        a.attribute_name = attribute_name
-        a.attribute_value = attribute_value
-        return a
+        return AutoLoadAttribute(relative_address=relative_address,
+                                 attribute_name=attribute_name,
+                                 attribute_value=attribute_value)
 
     def makeres(self, name, model, relative_address, unique_identifier):
-        r = AutoLoadResource()
-        r.name = name
-        r.model = model
-        r.relative_address = relative_address
-        r.unique_identifier = unique_identifier
-        return r
+        return AutoLoadResource(name=name, model=model,
+                                relative_address=relative_address,
+                                unique_identifier=unique_identifier)
