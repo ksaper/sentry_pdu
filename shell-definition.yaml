@@ -44,6 +44,25 @@ node_types:
           inventory_description:
             type: string
             default: Describe the resource shell template
+          User:
+            type: string
+          Password:
+            type: ccloudshell.datatypes.Password
+          SNMP Version:
+            type: string
+            default: v2c
+          SNMP Read Community:
+            type: string
+            default: public
+          SNMP Write Community:
+            type: string
+            default: public
+          SNMP V3 User:
+            type: string
+          SNMP V3 Private Key:
+            type: string
+          SNMP V3 Password:
+            type: cloudshell.datatypes.Password
     artifacts:
       icon:
         file: shell-icon.png
